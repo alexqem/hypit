@@ -1,6 +1,6 @@
 /** Resolve test files without depending on platform-specific shell glob syntax. */
 import { spawnSync } from "node:child_process";
-import { globSync } from "node:fs";
+import { globSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 const patterns = [
@@ -70,4 +70,14 @@ const result = spawnSync(process.execPath, [
   env: { ...suite?.env, ...process.env },
 });
 if (result.error !== undefined) throw result.error;
+// Temporary diagnostic branch only: distribution installation/rendering has its own budget.
+if (result.status === 0 && process.platform === "win32") {
+  const { version } = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
+  if (!/^\d+\.\d+\.\d+$/u.test(version)) throw new Error("Expected package version");
+  const distribution = spawnSync(process.env.ComSpec ?? "cmd.exe", ["/d", "/s", "/c",
+    `npm run pack:distribution && npm run check:distribution -- dist/release/hypit-hypit-${version}.tgz`,
+  ], { stdio: "inherit", windowsHide: true, timeout: 880_000 });
+  if (distribution.error) throw distribution.error;
+  if (distribution.status !== 0) process.exit(distribution.status ?? 1);
+}
 process.exit(result.status ?? 1);
