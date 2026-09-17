@@ -48,7 +48,6 @@ function normalizedRoots(roots: readonly string[]): readonly string[] {
 
 export function setActiveDistributionPackageRoots(roots: readonly string[]): void {
   activeDistributionRoots = normalizedRoots(roots);
-  if (process.env.HYPIT_FONT_DIAG === "1") console.error("ROOT_DIAG", { module: import.meta.url, roots: activeDistributionRoots });
 }
 
 export function setActiveExternalPackageRoots(roots: readonly string[]): void {
@@ -233,7 +232,6 @@ export function locateNodePackage(nameValue: string, options: LocateNodePackageO
       if (found !== undefined) return found;
     }
   }
-  if (process.env.HYPIT_FONT_DIAG === "1") console.error("PACKAGE_DIAG", { module: import.meta.url, name, from, distributionRoots, externalRoots, allowExternal, nativeFrom: realpathSync.native(dirname(from)) });
   throw new NodePackageNotFoundError(name);
 }
 
