@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@hypit/runtime": "workspace:*",
-    "@hypit/runtime-kit": "workspace:*"
+    "@hypit/runtime-kit": "workspace:*",
+    "@hypit/file-io-node": "workspace:*"
   }
 }

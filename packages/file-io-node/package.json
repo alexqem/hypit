@@ -1,5 +1,5 @@
 {
-  "name": "@hypit/build-result",
+  "name": "@hypit/file-io-node",
   "version": "0.0.0-dev",
   "license": "SEE LICENSE IN LICENSE",
   "private": true,
@@ -8,7 +8,6 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "@hypit/protocol": "workspace:*",
-    "@hypit/file-io-node": "workspace:*"
+    "koffi": "3.2.1"
   }
 }
