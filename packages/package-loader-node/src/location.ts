@@ -48,6 +48,7 @@ function normalizedRoots(roots: readonly string[]): readonly string[] {
 
 export function setActiveDistributionPackageRoots(roots: readonly string[]): void {
   activeDistributionRoots = normalizedRoots(roots);
+  console.error("ROOT_DIAG", { module: import.meta.url, roots: activeDistributionRoots });
 }
 
 export function setActiveExternalPackageRoots(roots: readonly string[]): void {
@@ -232,6 +233,7 @@ export function locateNodePackage(nameValue: string, options: LocateNodePackageO
       if (found !== undefined) return found;
     }
   }
+  console.error("PACKAGE_DIAG", { module: import.meta.url, name, from, distributionRoots, externalRoots, allowExternal, nativeFrom: realpathSync.native(dirname(from)) });
   throw new NodePackageNotFoundError(name);
 }
 
