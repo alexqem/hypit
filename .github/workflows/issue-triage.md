@@ -60,8 +60,7 @@ user-rate-limit:
   window: 60
 tools:
   cli-proxy: false
-  bash:
-    - cat /tmp/gh-aw/hypit-context/context.json
+  bash: false
   github:
     toolsets: [repos, issues]
     allowed:
