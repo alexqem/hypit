@@ -3,9 +3,6 @@ name: Automation integration smoke test
 description: Verify DeepSeek, threat detection and validated output without changing issues.
 on:
   workflow_dispatch:
-  push:
-    branches: [codex/issue-bot-gh-aw]
-    paths: [.github/workflows/automation-smoke.md]
   roles: all
   reaction: none
   status-comment: false
@@ -61,6 +58,12 @@ steps:
   - name: Prepare synthetic issue
     run: node .github/automation/smoke.mjs prepare
 jobs:
+  # The smoke test validates its custom report only; framework issue-reporting
+  # jobs are disabled so this workflow cannot post failure issues or comments.
+  conclusion:
+    if: 'false'
+  safe_outputs:
+    if: 'false'
   verify-smoke:
     needs: [agent, detection, apply_triage]
     if: always()

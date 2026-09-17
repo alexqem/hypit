@@ -169,6 +169,20 @@ bash .github/automation/install-gh-aw.sh /tmp/hypit-gh-aw
 apply_triage / apply_review job 的日志定位；重跑前检查账户额度和模型名。
 Actions 日志 / artifacts 含处理过的公开 Issue 与 PR 内容，快照保留 7 天。
 
+## 已完成的验证（2026-09-17）
+
+- 25 个自动化专项测试通过，覆盖重试、权限、标签归属、重复确认、PR diff 定位、预算和清理边界。
+- `pnpm check` 通过；`pnpm test` 为 986 通过、17 跳过、0 失败。
+- GitHub 的 Linux / Windows CI、npm 包执行检查、工作流编译一致性检查及 CodeQL 通过。
+- DeepSeek 的 Chat Completions 和 Anthropic 兼容接口均完成真实工具调用往返测试。
+- [完整集成运行](https://github.com/hypit-ai/hypit/actions/runs/35201303913)：agent、detection、apply_triage 和 verify-smoke 全部通过。
+- 已用真实 Issue 做读取及 dry-run，用真实 PR 验证草稿跳过，清理提醒执行过仓库只读预览。
+- Secret 与缺失标签已在仓库配置；没有修改真实 Issue / PR 来测试写入，也没有合并到 main。
+
+集成测试现只接受手动触发，移除了开发分支的临时 push 入口。框架的自动报告 jobs 在此测试中
+显式跳过，只有只读模型阶段、威胁检测和本地结果校验会运行；验证任务要求三者均成功，
+不会把无输出或跳过误报为通过。生产工作流保留默认的运行总结。
+
 ## 上游依据
 
 - [gh-aw 引擎 / BYOK](https://github.github.com/gh-aw/reference/engines/)

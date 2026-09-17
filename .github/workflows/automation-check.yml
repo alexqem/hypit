@@ -3,7 +3,7 @@ on:
   pull_request:
     paths: ['.github/automation/**', '.github/workflows/**', '.github/aw/**']
   push:
-    branches: [main, 'codex/issue-bot-gh-aw']
+    branches: [main]
     paths: ['.github/automation/**', '.github/workflows/**', '.github/aw/**']
 permissions:
   contents: read
