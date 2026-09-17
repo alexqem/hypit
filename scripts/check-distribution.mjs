@@ -13,7 +13,7 @@ const tarball = resolve(process.argv[2]);
 const root = await mkdtemp(join(tmpdir(), "hypit-distribution-"));
 const project = join(root, "project");
 await mkdir(project);
-const env = { ...process.env, HYPIT_STATE_HOME: join(root, "state") };
+const env = { ...process.env, HYPIT_FONT_DIAG: "1", HYPIT_STATE_HOME: join(root, "state") };
 // Old shell hints must not redirect the installed launcher, Worker or capture child.
 env.HYPIT_DISTRIBUTION_ROOT = join(root, "stale-distribution");
 env.HYPIT_CLI_LAUNCHER = join(root, "stale-distribution", "bin", "hypit.mjs");
