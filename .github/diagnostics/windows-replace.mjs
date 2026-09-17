@@ -15,8 +15,27 @@ async function replace(source, target, method) {
     api = {
       move: dll.func('int __stdcall MoveFileExW(str16, str16, uint32)'),
       replace: dll.func('int __stdcall ReplaceFileW(str16, str16, str16, uint32, void *, void *)'),
+      open: dll.func('intptr_t __stdcall CreateFileW(str16, uint32, uint32, void *, uint32, uint32, void *)'),
+      set: dll.func('int __stdcall SetFileInformationByHandle(intptr_t, int, void *, uint32)'),
+      close: dll.func('int __stdcall CloseHandle(intptr_t)'),
+      info: koffi.struct('HypitRenameInfo', { Flags: 'uint32', RootDirectory: 'void *', FileNameLength: 'uint32', FileName: koffi.array('uint16', 1) }),
+      koffi,
       error: dll.func('uint32 __stdcall GetLastError()'),
     };
+  }
+  if (method === 'posix') {
+    const handle = api.open(source, 0x00010000, 7, null, 3, 0, null);
+    if (handle === -1 || handle === -1n) throw Object.assign(new Error('CreateFileW failed'), {code:api.error(),syscall:'open'});
+    try {
+      const name = Buffer.from(target, 'utf16le');
+      const offset = api.koffi.offsetof(api.info, 'FileName');
+      const info = Buffer.alloc(api.koffi.sizeof(api.info) + name.length);
+      info.writeUInt32LE(3, api.koffi.offsetof(api.info, 'Flags'));
+      info.writeUInt32LE(name.length, api.koffi.offsetof(api.info, 'FileNameLength'));
+      name.copy(info, offset);
+      if (!api.set(handle, 22, info, info.length)) throw Object.assign(new Error('FileRenameInfoEx failed'), {code:api.error(),syscall:'posix'});
+    } finally {api.close(handle);}
+    return;
   }
   const ok = method === 'move' ? api.move(source, target, 1) : api.replace(target, source, null, 0, null, null);
   if (!ok) throw Object.assign(new Error(`${method} failed`), {code: api.error(), syscall: method});
@@ -60,7 +79,7 @@ if (process.argv[2] === 'child') {
     return {process,ready,exit};
   }
   try {
-    for(const method of ['node','move','replace']) {
+    for(const method of ['node','move','replace','posix']) {
       let path=await area(`${method}-sequential`);
       results.cases.push({method,scenario:'sequential',result:await attempt(path,method,'new')});
       path=await area(`${method}-same-process-reader`);
