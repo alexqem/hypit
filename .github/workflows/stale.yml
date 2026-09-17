@@ -1,0 +1,92 @@
+name: Inactive issues and PRs
+on:
+  schedule:
+    - cron: '17 3 * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Preview without changing issues or PRs
+        type: boolean
+        default: true
+permissions:
+  issues: write
+  pull-requests: write
+concurrency:
+  group: hypit-stale
+  cancel-in-progress: false
+jobs:
+  stale:
+    if: github.repository == 'hypit-ai/hypit'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Issues waiting for essential information (14 + 7 days)
+        uses: actions/stale@4391f3da665fdf50b6810c1a66712fb9ba21aa93 # v11.0.0
+        with:
+          debug-only: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}
+          days-before-issue-stale: 14
+          days-before-issue-close: 7
+          days-before-pr-stale: -1
+          days-before-pr-close: -1
+          only-issue-labels: needs-info
+          stale-issue-label: stale-needs-info
+          exempt-issue-labels: keep-open,bot-paused,needs-maintainer,security
+          exempt-all-milestones: true
+          remove-stale-when-updated: true
+          close-issue-reason: not_planned
+          stale-issue-message: >-
+            This issue still needs the information requested above. Please reply within 7 days;
+            otherwise it will be closed for lack of information, not marked as fixed.
+            这个问题仍缺少上面请求的信息。请在 7 天内补充，否则会因信息不足关闭，并不表示已修复。
+          close-issue-message: >-
+            Closed because the requested information was not provided. Please comment with the
+            missing details so a maintainer can reopen it.
+            暂因缺少必要信息关闭。补充信息后，维护者可以重新打开。
+          operations-per-run: 100
+          delete-branch: false
+      - name: PRs explicitly waiting on their author (30 + 14 days)
+        uses: actions/stale@4391f3da665fdf50b6810c1a66712fb9ba21aa93 # v11.0.0
+        with:
+          debug-only: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}
+          days-before-issue-stale: -1
+          days-before-issue-close: -1
+          days-before-pr-stale: 30
+          days-before-pr-close: 14
+          only-pr-labels: awaiting-author
+          stale-pr-label: stale-awaiting-author
+          exempt-pr-labels: keep-open,bot-paused,needs-maintainer,security
+          exempt-all-milestones: true
+          exempt-draft-pr: true
+          remove-stale-when-updated: true
+          stale-pr-message: >-
+            This PR is marked as waiting for its author. Please respond or push an update within
+            14 days to keep it open. If it is waiting on maintainers, remove awaiting-author.
+            此 PR 标记为等待作者处理，请在 14 天内回复或更新；如果在等维护者，请移除 awaiting-author。
+          close-pr-message: >-
+            Closed after the author-response reminder received no activity. The branch is preserved;
+            please reopen when ready to continue. 因提醒后仍无更新暂时关闭，分支保留，可准备好后重新打开。
+          operations-per-run: 100
+          delete-branch: false
+      - name: Remind about other inactive work without closing it
+        uses: actions/stale@4391f3da665fdf50b6810c1a66712fb9ba21aa93 # v11.0.0
+        with:
+          debug-only: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}
+          days-before-stale: 60
+          days-before-close: -1
+          stale-issue-label: inactive
+          stale-pr-label: inactive
+          exempt-issue-labels: needs-info,stale-needs-info,keep-open,bot-paused,needs-maintainer,security
+          exempt-pr-labels: awaiting-author,stale-awaiting-author,keep-open,bot-paused,needs-maintainer,security
+          exempt-all-milestones: true
+          exempt-draft-pr: true
+          remove-stale-when-updated: true
+          stale-issue-message: >-
+            No recent activity. Maintainers: please check whether this is still relevant.
+            This reminder does not automatically close the issue.
+            最近没有更新，请维护者确认是否仍需处理；此提醒不会自动关闭问题。
+          stale-pr-message: >-
+            No recent activity. Maintainers: please check whether review is still needed.
+            This reminder does not automatically close the PR.
+            最近没有更新，请维护者确认是否仍需审查；此提醒不会自动关闭 PR。
+          operations-per-run: 100
+          delete-branch: false

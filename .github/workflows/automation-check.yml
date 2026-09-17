@@ -1,0 +1,34 @@
+name: Check repository automation
+on:
+  pull_request:
+    paths: ['.github/automation/**', '.github/workflows/**', '.github/aw/**']
+  push:
+    branches: [main, 'codex/issue-bot-gh-aw']
+    paths: ['.github/automation/**', '.github/workflows/**', '.github/aw/**']
+permissions:
+  contents: read
+concurrency:
+  group: automation-check-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - name: Test permissions, retries and lifecycle rules
+        run: node --test .github/automation/automation.test.mjs
+      - name: Install pinned gh-aw compiler
+        run: bash .github/automation/install-gh-aw.sh "$RUNNER_TEMP/gh-aw-cli"
+      - name: Verify compiled workflows are current
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          "$RUNNER_TEMP/gh-aw-cli" compile --no-check-update
+          git diff --exit-code -- .github/workflows/*.lock.yml .github/aw/actions-lock.json .gitattributes
