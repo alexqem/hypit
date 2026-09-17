@@ -17,14 +17,16 @@ concurrency:
   group: hypit-automation-smoke
   cancel-in-progress: false
 engine:
-  id: copilot
+  id: claude
   model: deepseek-flash
   env:
-    COPILOT_PROVIDER_BASE_URL: https://api.deepseek.com
-    COPILOT_PROVIDER_TYPE: openai
-    COPILOT_PROVIDER_WIRE_API: completions
-    COPILOT_PROVIDER_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
-    COPILOT_MODEL: deepseek-flash
+    ANTHROPIC_BASE_URL: https://api.deepseek.com/anthropic
+    ANTHROPIC_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+    ANTHROPIC_MODEL: deepseek-flash
+    ANTHROPIC_DEFAULT_OPUS_MODEL: deepseek-flash
+    ANTHROPIC_DEFAULT_SONNET_MODEL: deepseek-flash
+    ANTHROPIC_DEFAULT_HAIKU_MODEL: deepseek-flash
+    CLAUDE_CODE_SUBAGENT_MODEL: deepseek-flash
 # Peak USD per million tokens, verified against DeepSeek pricing on 2026-09-17.
 # Required because the pinned AWF catalog does not yet include deepseek-flash.
 models:
@@ -90,7 +92,7 @@ safe-outputs:
         contents: read
       inputs:
         report:
-          description: 'JSON object with summary, language (en or zh), category, areas, questions, related, needs_maintainer. Same schema as Hypit issue triage.'
+          description: 'JSON object with summary (<=900 chars), language (en or zh), category (bug, enhancement, documentation, question or unknown), areas (at most 2 allowed labels), questions (at most 3 strings <=350 chars), related (at most 3 objects with number, relationship duplicate or related, reason <=400 chars), needs_maintainer (boolean). All fields required.'
           type: string
           required: true
       steps:

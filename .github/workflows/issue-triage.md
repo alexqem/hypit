@@ -31,14 +31,16 @@ concurrency:
   cancel-in-progress: false
   job-discriminator: ${{ github.event.issue.number || inputs.issue_number }}
 engine:
-  id: copilot
+  id: claude
   model: deepseek-flash
   env:
-    COPILOT_PROVIDER_BASE_URL: https://api.deepseek.com
-    COPILOT_PROVIDER_TYPE: openai
-    COPILOT_PROVIDER_WIRE_API: completions
-    COPILOT_PROVIDER_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
-    COPILOT_MODEL: deepseek-flash
+    ANTHROPIC_BASE_URL: https://api.deepseek.com/anthropic
+    ANTHROPIC_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+    ANTHROPIC_MODEL: deepseek-flash
+    ANTHROPIC_DEFAULT_OPUS_MODEL: deepseek-flash
+    ANTHROPIC_DEFAULT_SONNET_MODEL: deepseek-flash
+    ANTHROPIC_DEFAULT_HAIKU_MODEL: deepseek-flash
+    CLAUDE_CODE_SUBAGENT_MODEL: deepseek-flash
 # Peak USD per million tokens, verified against DeepSeek pricing on 2026-09-17.
 # Required because the pinned AWF catalog does not yet include deepseek-flash.
 models:

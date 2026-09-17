@@ -11,5 +11,5 @@ if (process.argv[2] === 'prepare') {
 } else {
   const report = validateReport(oneOutput(process.env.GH_AW_AGENT_OUTPUT, 'apply_triage'), 9999999999);
   if (report.category !== 'bug' || report.language !== 'zh') throw new Error('Smoke fixture was not classified in its original language');
-  summary('DeepSeek + Copilot CLI + gh-aw safe output validation passed. No issue or PR was modified.');
+  summary('DeepSeek + Claude Code + gh-aw safe output validation passed. No issue or PR was modified.');
 }

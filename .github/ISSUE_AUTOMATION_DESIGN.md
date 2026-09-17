@@ -17,8 +17,8 @@
 
 ## 模型与凭据
 
-采用 `gh-aw → Copilot CLI BYOK → DeepSeek API`。Copilot CLI 是代理运行器，推理由
-DeepSeek 提供，不需要 Copilot 推理订阅。`openai` 是 API 兼容协议名称。
+采用 `gh-aw → Claude Code → DeepSeek Anthropic 兼容 API`。Claude Code 是代理运行器，
+实际推理由 DeepSeek 提供，不使用 Anthropic 模型额度，也不需要 Copilot 推理订阅。
 
 唯一需要人工配置的模型凭据是 Actions secret `DEEPSEEK_API_KEY`。已经通过官方 API
 验证账户和 `deepseek-flash`，并完成真实工具调用往返测试。不要把密钥放入工作流或文档。
@@ -28,14 +28,16 @@ GitHub 操作使用短期 `GITHUB_TOKEN`，不需要 PAT。
 
 ```yaml
 engine:
-  id: copilot
+  id: claude
   model: deepseek-flash
   env:
-    COPILOT_PROVIDER_BASE_URL: https://api.deepseek.com
-    COPILOT_PROVIDER_TYPE: openai
-    COPILOT_PROVIDER_WIRE_API: completions
-    COPILOT_PROVIDER_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
-    COPILOT_MODEL: deepseek-flash
+    ANTHROPIC_BASE_URL: https://api.deepseek.com/anthropic
+    ANTHROPIC_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+    ANTHROPIC_MODEL: deepseek-flash
+    ANTHROPIC_DEFAULT_OPUS_MODEL: deepseek-flash
+    ANTHROPIC_DEFAULT_SONNET_MODEL: deepseek-flash
+    ANTHROPIC_DEFAULT_HAIKU_MODEL: deepseek-flash
+    CLAUDE_CODE_SUBAGENT_MODEL: deepseek-flash
 sandbox:
   agent:
     model-fallback: false
@@ -65,7 +67,7 @@ Bot 评论、PR 评论和普通闲聊不会触发有效分诊。每个用户每�
 处理超长讨论时明确限制；超过分页上限则失败并留给人工处理。
 模型最多执行 24 轮、10 分钟；MCP 限制查重搜索 3 次、读取候选 5 次、读取文档 2 次。
 关闭代理的 shell 工具（`tools.bash: false`、`cli-proxy: false`），使用原生 MCP 工具调用。
-固定版本在允许 shell 时仍会注入 CLI 包装器提示，因此必须同时关闭 shell，避免参数探索与转义循环。
+使用直接工具参数传递结构化报告，避免 shell 命令拼接、参数探索与 JSON 转义循环。
 搜索限定 `hypit-ai/hypit`，包含关闭的问题；修复后复发或根因不同应标为相关，不能当作重复。
 
 允许的类别为 `bug / enhancement / documentation / question`，已有类别不会被替换。
@@ -173,6 +175,6 @@ Actions 日志 / artifacts 含处理过的公开 Issue 与 PR 内容，快照保
 - [触发与角色](https://github.github.com/gh-aw/reference/triggers/)、[内容完整性](https://github.github.com/gh-aw/reference/integrity/)
 - [自定义安全输出](https://github.github.com/gh-aw/reference/custom-safe-outputs/)、[威胁检测](https://github.github.com/gh-aw/reference/threat-detection/)
 - [可信 checkout](https://github.github.com/gh-aw/reference/checkout/)、[沙箱与模型路由](https://github.github.com/gh-aw/reference/sandbox/)
-- [DeepSeek API](https://api-docs.deepseek.com/)
+- [DeepSeek API](https://api-docs.deepseek.com/)、[DeepSeek 官方 Claude Code 接入](https://api-docs.deepseek.com/quick_start/agent_integrations/claude_code/)
 - [Copilot 自动审查设置](https://docs.github.com/en/copilot/how-tos/copilot-on-github/set-up-copilot/configure-code-review)
 - [actions/stale](https://github.com/actions/stale)
