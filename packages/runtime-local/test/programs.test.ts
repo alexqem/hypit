@@ -242,7 +242,7 @@ test("up reports resources installed even when a probe-only tool was already usa
     installation: {
       probe: async () => {
         try { await readFile(join(root, "resource")); return { state: "ready" }; }
-        catch { return { state: "down" }; }
+        catch { return { state: "down", detail: "resource is not prepared" }; }
       },
       commands: [nodeProgram("require('node:fs').writeFileSync(process.argv[1], 'ready')", join(root, "resource"))],
     },
