@@ -1,4 +1,5 @@
-import { appendFileSync, readFileSync } from 'node:fs';
+import { dirname } from 'node:path';
+import { appendFileSync, readFileSync, mkdirSync } from 'node:fs';
 
 export const BOT = 'github-actions[bot]';
 export const REPOSITORY = 'hypit-ai/hypit';
@@ -85,4 +86,13 @@ export function oneOutput(path, type) {
   const matching = data.items?.filter(item => item.type === type);
   if (!matching || matching.length !== 1) throw new Error(`Expected exactly one ${type} output`);
   return JSON.parse(matching[0].report);
+}
+
+// Writing noop before the harness starts avoids spending model tokens on ineligible events.
+export function noop(message) {
+  const path = process.env.GH_AW_SAFE_OUTPUTS;
+  if (!path) throw new Error('GH_AW_SAFE_OUTPUTS is required for pre-agent skips');
+  mkdirSync(dirname(path), { recursive: true });
+  appendFileSync(path, `${JSON.stringify({ type: 'noop', message })}\n`);
+  summary(message);
 }

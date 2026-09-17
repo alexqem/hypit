@@ -18,12 +18,21 @@ concurrency:
   cancel-in-progress: false
 engine:
   id: copilot
+  model: deepseek-flash
   env:
     COPILOT_PROVIDER_BASE_URL: https://api.deepseek.com
     COPILOT_PROVIDER_TYPE: openai
     COPILOT_PROVIDER_WIRE_API: completions
     COPILOT_PROVIDER_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
     COPILOT_MODEL: deepseek-flash
+# Peak USD per million tokens, verified against DeepSeek pricing on 2026-09-17.
+# Required because the pinned AWF catalog does not yet include deepseek-flash.
+models:
+  default-ai-credits-pricing:
+    input: 0.3
+    output: 1.2
+max-ai-credits: 50
+max-daily-ai-credits: 500
 sandbox:
   agent:
     model-fallback: false
@@ -46,10 +55,11 @@ safe-outputs:
   report-failure-as-issue: false
   threat-detection:
     continue-on-error: false
+    max-ai-credits: 10
   jobs:
     apply-triage:
       description: Validate the smoke-test triage report without changing GitHub data. Call exactly once.
-      if: needs.agent.result == 'success' && needs.detection.result == 'success'
+      if: needs.agent.result == 'success' && needs.detection.result == 'success' && needs.detection.outputs.detection_success == 'true'
       runs-on: ubuntu-latest
       permissions:
         contents: read

@@ -29,6 +29,7 @@ GitHub 操作使用短期 `GITHUB_TOKEN`，不需要 PAT。
 ```yaml
 engine:
   id: copilot
+  model: deepseek-flash
   env:
     COPILOT_PROVIDER_BASE_URL: https://api.deepseek.com
     COPILOT_PROVIDER_TYPE: openai
@@ -40,6 +41,13 @@ sandbox:
     model-fallback: false
     token-steering: false
 ```
+
+固定版本的 AWF 价格目录尚无 `deepseek-flash`，因此必须设置
+`models.default-ai-credits-pricing`，否则代理会在请求模型前返回 HTTP 400。
+当前按 [2026-09-17 的 DeepSeek 峰时价格](https://api-docs.deepseek.com/quick_start/pricing/)
+配置输入 / 输出每百万 token $0.3 / $1.2；未计缓存和谷时折扣，作为偏保守的预算估算。
+实际账单以 DeepSeek 为准。主任务每次限 50 AIC、检测 10 AIC，每个工作流每日限 500 AIC；
+1 AIC 对应估算 $0.01。这些是请求间的预算控制，最后一个请求可能跨过阈值。
 
 关闭模型改写是为了把 DeepSeek 模型名原样传给供应商。威胁检测保留开启，并配置
 `continue-on-error: false`；自定义写入 job 还要求 agent 和 detection 均成功。

@@ -1,6 +1,6 @@
-import { mkdirSync, readFileSync, writeFileSync, appendFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
-import { BOT, REPOSITORY, client, repoPath, pages, number, event, summary, preview, prose, exactKeys, list, oneOutput } from './github.mjs';
+import { BOT, REPOSITORY, client, repoPath, pages, number, event, summary, preview, prose, exactKeys, list, oneOutput, noop } from './github.mjs';
 const CONTEXT = '/tmp/gh-aw/hypit-review';
 const marker = sha => `<!-- hypit-pr-review:${sha} -->`;
 
@@ -79,7 +79,7 @@ async function main() {
     const context = await prepareReview(api, data);
     mkdirSync(CONTEXT, { recursive: true });
     writeFileSync(`${CONTEXT}/context.json`, JSON.stringify(context));
-    if (context.skip) appendFileSync(process.env.GH_AW_SAFE_OUTPUTS, `${JSON.stringify({ type: 'noop', message: context.skip })}\n`);
+    if (context.skip) noop(context.skip);
   } else if (process.argv[2] === 'apply') {
     summary(JSON.stringify(await applyReview(api, JSON.parse(readFileSync(`${CONTEXT}/context.json`, 'utf8')), oneOutput(process.env.GH_AW_AGENT_OUTPUT, 'apply_review'), preview(data)), null, 2));
   } else throw new Error('Expected prepare or apply');

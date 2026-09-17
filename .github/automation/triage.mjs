@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
-import { readFileSync, writeFileSync, mkdirSync, appendFileSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
-import { BOT, REPOSITORY, client, repoPath, pages, canMaintain, number, event, summary, preview, prose, exactKeys, list, oneOutput } from './github.mjs';
+import { BOT, REPOSITORY, client, repoPath, pages, canMaintain, number, event, summary, preview, prose, exactKeys, list, oneOutput, noop } from './github.mjs';
 
 export const TYPES = ['bug', 'enhancement', 'documentation', 'question'];
 export const AREAS = ['area/cli', 'area/studio', 'area/runtime', 'area/providers', 'area/authoring', 'area/docs'];
@@ -149,8 +149,7 @@ async function main() {
     mkdirSync(CONTEXT, { recursive: true });
     writeFileSync(`${CONTEXT}/context.json`, JSON.stringify(result));
     if (result.skip) {
-      appendFileSync(process.env.GH_AW_SAFE_OUTPUTS, `${JSON.stringify({ type: 'noop', message: result.skip })}\n`);
-      summary(result.skip);
+      noop(result.skip);
     }
     return;
   }
