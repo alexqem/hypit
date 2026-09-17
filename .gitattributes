@@ -7,5 +7,3 @@
 *.mp4 binary
 *.png binary
 *.webp binary
-
-.github/workflows/*.lock.yml linguist-generated=true

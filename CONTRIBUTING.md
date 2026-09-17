@@ -106,18 +106,11 @@ published version before telling users the update is available.
 Branch names and commit subjects share the same prefix: `feat/`, `fix/`, `docs/` for branches and
 `feat:`, `fix:`, `docs:` for commits.
 
-## Issue and PR automation
+## Issue and PR analysis
 
-An AI assistant summarizes new issues, suggests labels and links related reports. Reply with the
-requested details when an issue needs more information; the author or a maintainer can comment
-`/triage` to request another pass. Maintainers confirm duplicate closures and can correct the bot.
-PR reviews are advisory and do not replace maintainer approval.
-
-Issues waiting for essential information receive a reminder after 14 inactive days and may close
-7 days later. PRs explicitly marked `awaiting-author` receive a reminder after 30 inactive days and
-may close 14 days later. Other inactive work receives reminders only; draft PRs are exempt.
-Maintainers can use `keep-open` or `/bot-pause` when needed. See the
-[automation operator guide](.github/ISSUE_AUTOMATION_DESIGN.md) for commands and configuration.
+Maintainers can request a preliminary AI analysis of an issue or PR from the **Repository analysis**
+Actions workflow. Its advice appears only in that run's summary; issue/PR management stays with
+maintainers. See the [operator guide](.github/ISSUE_AUTOMATION_DESIGN.md) for inputs and limits.
 
 ## Getting help
 

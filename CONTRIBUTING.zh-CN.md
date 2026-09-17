@@ -93,16 +93,11 @@ npm 包的 Trusted Publisher 应配置 GitHub Actions：组织 `hypit-ai`、仓�
 
 分支名与提交信息使用同一套前缀：分支用 `feat/`、`fix/`、`docs/`，提交信息用 `feat:`、`fix:`、`docs:`。
 
-## Issue 与 PR 自动化
+## Issue 与 PR 分析
 
-AI 助手会概述新 Issue、建议标签并关联相似问题。需要补充信息时，请直接回复；作者或维护者
-可评论 `/triage` 请求重新分析。重复问题由维护者确认后关闭，机器人结论也可由维护者更正。
-PR 的 AI 审查意见供参考，不能代替维护者批准。
-
-等待必要信息的 Issue 在无活动 14 天后提醒，再过 7 天仍无更新可能关闭；明确标为
-`awaiting-author` 的 PR 在无活动 30 天后提醒，再过 14 天仍无更新可能关闭。其他内容只提醒，
-草稿 PR 不参与清理。维护者可使用 `keep-open` 或 `/bot-pause`。
-命令与配置详见[自动化维护指南](.github/ISSUE_AUTOMATION_DESIGN.md)。
+维护者可在 Actions 的 **Repository analysis** 工作流中指定 Issue 或 PR，请求 AI 初步分析。
+建议只显示在该次运行的报告里，Issue 与 PR 的管理仍由维护者操作。
+输入与分析范围详见[维护指南](.github/ISSUE_AUTOMATION_DESIGN.md)。
 
 ## 获取帮助
 
