@@ -54,15 +54,23 @@ sandbox:
 network:
   allowed: [defaults, github, api.deepseek.com]
 timeout-minutes: 10
-max-turns: 12
+max-turns: 24
 user-rate-limit:
   max-runs-per-window: 3
   window: 60
 tools:
+  cli-proxy: false
   bash:
     - cat /tmp/gh-aw/hypit-context/context.json
   github:
-    toolsets: [repos, issues, labels]
+    toolsets: [repos, issues]
+    allowed:
+      - name: search_issues
+        max-calls: 3
+      - name: issue_read
+        max-calls: 5
+      - name: get_file_contents
+        max-calls: 2
     min-integrity: none
     allowed-repos: [hypit-ai/hypit]
 steps:
@@ -79,6 +87,7 @@ steps:
       retention-days: 7
 safe-outputs:
   report-failure-as-issue: false
+  report-failed-jobs: false
   threat-detection:
     continue-on-error: false
     max-ai-credits: 10
@@ -126,8 +135,9 @@ Bug reports need actual/expected behavior, reproduction and Hypit version.
 Ask at most three specific questions when essential information is missing.
 Coding-agent name, model service and logs are optional; ask for them only when
 relevant. Blank issues are allowed. Feature requests need a concrete goal and
-desired outcome. Consult CONTRIBUTING.md and relevant docs through read tools
-only when needed. Changes to protocol types, package boundaries, Provider
+desired outcome. The supplied context is sufficient for routine triage. Do not explore the
+repository tree or read unrelated docs. Read at most two specific docs through
+get_file_contents only when essential to interpret the report. Changes to protocol types, package boundaries, Provider
 contracts or product direction require maintainer judgment.
 
 Use only these categories: bug, enhancement, documentation, question, unknown.

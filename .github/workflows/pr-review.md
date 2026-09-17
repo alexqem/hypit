@@ -50,11 +50,12 @@ sandbox:
 network:
   allowed: [defaults, github, api.deepseek.com]
 timeout-minutes: 10
-max-turns: 12
+max-turns: 24
 user-rate-limit:
   max-runs-per-window: 3
   window: 60
 tools:
+  cli-proxy: false
   bash:
     - cat /tmp/gh-aw/hypit-review/context.json
 steps:
@@ -76,6 +77,7 @@ steps:
       retention-days: 7
 safe-outputs:
   report-failure-as-issue: false
+  report-failed-jobs: false
   threat-detection:
     continue-on-error: false
     max-ai-credits: 10

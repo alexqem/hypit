@@ -1,6 +1,9 @@
 import test from 'node:test';
+import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import assert from 'node:assert/strict';
-import { BOT, REPOSITORY, prose, number, client } from './github.mjs';
+import { BOT, REPOSITORY, prose, number, client, noop } from './github.mjs';
 import { apply, prepare, snapshot, readState, validateReport, ownComment, eligible, TYPES, AREAS, STATES } from './triage.mjs';
 import { command } from './commands.mjs';
 import { applyReview, prepareReview, rightLines, validateReview } from './review.mjs';
@@ -198,4 +201,19 @@ test('label setup preserves existing labels and repeated runs are harmless', asy
   await setup(f.api, true); assert.equal(f.writes.length, 0);
   await setup(f.api, false); const count = f.writes.length;
   await setup(f.api, false); assert.equal(f.writes.length, count); assert.equal(count, LABELS.length);
+});
+
+test('pre-agent skips create a harness-readable noop without a model request', t => {
+  const directory = mkdtempSync(join(tmpdir(), 'hypit-noop-'));
+  const priorPath = process.env.GH_AW_SAFE_OUTPUTS;
+  const priorSummary = process.env.GITHUB_STEP_SUMMARY;
+  t.after(() => {
+    if (priorPath === undefined) delete process.env.GH_AW_SAFE_OUTPUTS; else process.env.GH_AW_SAFE_OUTPUTS = priorPath;
+    if (priorSummary === undefined) delete process.env.GITHUB_STEP_SUMMARY; else process.env.GITHUB_STEP_SUMMARY = priorSummary;
+    rmSync(directory, { recursive: true, force: true });
+  });
+  process.env.GH_AW_SAFE_OUTPUTS = join(directory, 'safeoutputs', 'outputs.jsonl');
+  process.env.GITHUB_STEP_SUMMARY = join(directory, 'summary.md');
+  noop('Issue already processed');
+  assert.deepEqual(JSON.parse(readFileSync(process.env.GH_AW_SAFE_OUTPUTS, 'utf8')), { type: 'noop', message: 'Issue already processed' });
 });
