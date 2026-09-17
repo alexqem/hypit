@@ -10,6 +10,9 @@ export async function lifecycle(api, name, data) {
   if (!labels.has('awaiting-author')) remove.add('stale-awaiting-author');
   const authorReplied = name === 'issue_comment' && data.action === 'created' && data.comment.user.type !== 'Bot' && data.comment.user.login === issue.user.login;
   const newCommit = name === 'pull_request_target' && data.action === 'synchronize';
+  const humanComment = name === 'issue_comment' && data.action === 'created' && data.comment.user.type !== 'Bot';
+  const humanUpdate = ['issues', 'pull_request_target'].includes(name) && ['edited', 'reopened', 'ready_for_review'].includes(data.action) && data.sender?.type !== 'Bot';
+  if (humanComment || humanUpdate || newCommit) remove.add('inactive');
   if (issue.pull_request && (authorReplied || newCommit)) {
     remove.add('awaiting-author'); remove.add('stale-awaiting-author'); remove.add('inactive');
   }

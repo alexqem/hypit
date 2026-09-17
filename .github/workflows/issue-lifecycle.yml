@@ -3,9 +3,9 @@ on:
   issue_comment:
     types: [created]
   issues:
-    types: [unlabeled]
+    types: [unlabeled, edited, reopened]
   pull_request_target:
-    types: [synchronize, unlabeled]
+    types: [synchronize, unlabeled, edited, reopened, ready_for_review]
 permissions:
   contents: read
   issues: write

@@ -8,6 +8,7 @@ import { apply, prepare, snapshot, readState, validateReport, ownComment, eligib
 import { command } from './commands.mjs';
 import { applyReview, prepareReview, rightLines, validateReview, withinReviewBudget } from './review.mjs';
 import { lifecycle } from './lifecycle.mjs';
+import { reminders, needsReminder } from './reminders.mjs';
 import { LABELS, setup } from './setup.mjs';
 const human = { login: 'reporter', type: 'User' };
 const bot = { login: BOT, type: 'Bot' };
@@ -22,6 +23,7 @@ function fixture() {
     if (method !== 'GET') { f.writes.push({ method, p, body }); if (f.fail?.(method, p)) throw new Error('Injected failure'); }
     if (method === 'GET') {
       if (p.includes('/permission')) return { permission: f.permission };
+      if (p === 'issues') return structuredClone(f.candidates ?? []);
       if (p === 'issues/1') return structuredClone(f.issue);
       if (p === 'issues/2') return structuredClone(f.target);
       if (p === 'issues/1/comments') return structuredClone(f.comments);
@@ -228,4 +230,27 @@ test('PR run limits use GitHub metadata and fail closed without cross-run caches
   await assert.rejects(withinReviewBudget(f.api, 0));
   await assert.rejects(withinReviewBudget(f.api, 201));
   f.runCount = -1; await assert.rejects(withinReviewBudget(f.api), /Invalid/);
+});
+
+test('reminders respect age, waiting policies, exemptions and drafts', () => {
+  const old = { state: 'open', updated_at: '2026-01-01T00:00:00Z', labels: [] };
+  const now = new Date('2026-09-17T00:00:00Z');
+  assert.equal(needsReminder(old, now), true);
+  for (const name of ['needs-info', 'awaiting-author', 'keep-open', 'bot-paused', 'needs-maintainer', 'security', 'inactive']) assert.equal(needsReminder({ ...old, labels: [{ name }] }, now), false);
+  for (const changes of [{ draft: true }, { milestone: {} }, { state: 'closed' }, { updated_at: now.toISOString() }, { updated_at: 'invalid' }]) assert.equal(needsReminder({ ...old, ...changes }, now), false);
+});
+test('reminder preview is read-only and posting never closes or duplicates', async () => {
+  const f = fixture(); f.issue.updated_at = '2026-01-01T00:00:00Z'; f.candidates = [structuredClone(f.issue)];
+  const now = new Date('2026-09-17T00:00:00Z');
+  assert.deepEqual((await reminders(f.api, true, now)).reminders, [1]); assert.equal(f.writes.length, 0);
+  await reminders(f.api, false, now); const count = f.writes.length;
+  await reminders(f.api, false, now);
+  assert.equal(f.writes.length, count); assert.equal(f.comments.length, 1); assert.equal(f.issue.state, 'open');
+});
+test('reminders recheck recent activity and skip draft PRs', async () => {
+  const f = fixture(); f.issue.updated_at = '2026-01-01T00:00:00Z'; f.candidates = [structuredClone(f.issue)];
+  const now = new Date('2026-09-17T00:00:00Z');
+  f.issue.updated_at = now.toISOString(); await reminders(f.api, false, now); assert.equal(f.writes.length, 0);
+  f.issue.updated_at = '2026-01-01T00:00:00Z'; f.issue.pull_request = {}; f.pr.updated_at = f.issue.updated_at; f.pr.draft = true;
+  await reminders(f.api, false, now); assert.equal(f.writes.length, 0);
 });
