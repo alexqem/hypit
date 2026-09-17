@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import { BOT, REPOSITORY, prose, number, client, noop } from './github.mjs';
 import { apply, prepare, snapshot, readState, validateReport, ownComment, eligible, TYPES, AREAS, STATES } from './triage.mjs';
 import { command } from './commands.mjs';
-import { applyReview, prepareReview, rightLines, validateReview } from './review.mjs';
+import { applyReview, prepareReview, rightLines, validateReview, withinReviewBudget } from './review.mjs';
 import { lifecycle } from './lifecycle.mjs';
 import { LABELS, setup } from './setup.mjs';
 const human = { login: 'reporter', type: 'User' };
@@ -27,6 +27,7 @@ function fixture() {
       if (p === 'issues/1/comments') return structuredClone(f.comments);
       if (p === 'issues/1/events') return structuredClone(f.events);
       if (p === 'labels') return structuredClone(f.labels);
+      if (p === 'actions/workflows/pr-review.lock.yml/runs') return { total_count: f.runCount ?? 1 };
       if (p === 'pulls/1') return structuredClone(f.pr);
       if (p === 'pulls/1/reviews') return structuredClone(f.reviews);
       if (p === 'pulls/1/files') return structuredClone(f.files);
@@ -216,4 +217,15 @@ test('pre-agent skips create a harness-readable noop without a model request', t
   process.env.GITHUB_STEP_SUMMARY = join(directory, 'summary.md');
   noop('Issue already processed');
   assert.deepEqual(JSON.parse(readFileSync(process.env.GH_AW_SAFE_OUTPUTS, 'utf8')), { type: 'noop', message: 'Issue already processed' });
+});
+
+test('PR run limits use GitHub metadata and fail closed without cross-run caches', async () => {
+  const f = fixture();
+  f.runCount = 20; assert.equal(await withinReviewBudget(f.api), true);
+  f.runCount = 21; assert.equal(await withinReviewBudget(f.api), false);
+  assert.match((await prepareReview(f.api, { inputs: { pr_number: 1 } })).skip, /24-hour/);
+  assert.equal(f.writes.length, 0);
+  await assert.rejects(withinReviewBudget(f.api, 0));
+  await assert.rejects(withinReviewBudget(f.api, 201));
+  f.runCount = -1; await assert.rejects(withinReviewBudget(f.api), /Invalid/);
 });

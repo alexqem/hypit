@@ -15,11 +15,21 @@ export function rightLines(patch) {
   return lines;
 }
 
+export async function withinReviewBudget(api, limit = process.env.PR_DAILY_RUN_LIMIT || '20', now = new Date()) {
+  const cap = number(limit);
+  if (cap > 200) throw new Error('PR_DAILY_RUN_LIMIT must be between 1 and 200');
+  const since = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString();
+  const runs = await api('GET', repoPath(`actions/workflows/pr-review.lock.yml/runs?created=${encodeURIComponent(`>=${since}`)}&per_page=1`));
+  if (!Number.isInteger(runs.total_count) || runs.total_count < 0) throw new Error('Invalid workflow run count');
+  return runs.total_count <= cap;
+}
+
 export async function prepareReview(api, data) {
   const n = number(data.pull_request?.number ?? data.inputs?.pr_number);
   const pr = await api('GET', repoPath(`pulls/${n}`));
   if (pr.state !== 'open' || pr.draft || pr.labels.some(l => l.name === 'bot-paused')) return { skip: 'PR is closed, draft or paused' };
   if (pr.base.repo.full_name !== REPOSITORY) throw new Error('Unexpected PR base');
+  if (!await withinReviewBudget(api)) return { skip: 'PR review reached its repository-wide 24-hour run limit' };
   const reviews = await pages(api, repoPath(`pulls/${n}/reviews`));
   if (reviews.some(r => r.user?.login === BOT && r.user.type === 'Bot' && r.body?.startsWith(marker(pr.head.sha)))) return { skip: 'Head commit already reviewed' };
   const files = await pages(api, repoPath(`pulls/${n}/files`));

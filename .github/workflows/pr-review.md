@@ -22,6 +22,7 @@ checkout: false
 permissions:
   contents: read
   pull-requests: read
+  actions: read
 concurrency:
   group: hypit-pr-review-${{ github.event.pull_request.number || inputs.pr_number }}
   cancel-in-progress: false
@@ -42,7 +43,9 @@ models:
     input: 0.3
     output: 1.2
 max-ai-credits: 50
-max-daily-ai-credits: 500
+# Avoid publishing agent-derived usage caches from a pull_request_target workflow.
+# prepareReview enforces a stateless repository-wide rolling run limit instead.
+max-daily-ai-credits: -1
 sandbox:
   agent:
     model-fallback: false
@@ -67,6 +70,7 @@ steps:
   - name: Prepare bounded PR diff
     env:
       GH_TOKEN: ${{ github.token }}
+      PR_DAILY_RUN_LIMIT: ${{ vars.HYPIT_PR_DAILY_RUN_LIMIT || '20' }}
       GH_AW_SAFE_OUTPUTS: ${{ runner.temp }}/gh-aw/safeoutputs/outputs.jsonl
     run: node .github/automation/review.mjs prepare
   - name: Preserve pre-agent snapshot

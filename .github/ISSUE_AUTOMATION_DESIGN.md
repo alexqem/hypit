@@ -46,7 +46,9 @@ sandbox:
 `models.default-ai-credits-pricing`，否则代理会在请求模型前返回 HTTP 400。
 当前按 [2026-09-17 的 DeepSeek 峰时价格](https://api-docs.deepseek.com/quick_start/pricing/)
 配置输入 / 输出每百万 token $0.3 / $1.2；未计缓存和谷时折扣，作为偏保守的预算估算。
-实际账单以 DeepSeek 为准。主任务每次限 50 AIC、检测 10 AIC，每个工作流每日限 500 AIC；
+实际账单以 DeepSeek 为准。主任务每次限 50 AIC、检测 10 AIC；Issue 和集成测试工作流每日限 500 AIC。
+PR 工作流不保存跨运行的模型费用缓存，改为从 GitHub API 读取最近 24 小时的运行次数，默认最多 20 次
+（包含失败、跳过和当前运行，偏保守）。仓库变量 `HYPIT_PR_DAILY_RUN_LIMIT` 可设为 1–200。
 1 AIC 对应估算 $0.01。这些是请求间的预算控制，最后一个请求可能跨过阈值。
 
 关闭模型改写是为了把 DeepSeek 模型名原样传给供应商。威胁检测保留开启，并配置
